@@ -5,18 +5,17 @@ Purpose: Tic-Tac-Toe is a game in which two players seek in alternate turns to c
          or a diagonal with either three x's or three o's drawn in the spaces of a grid of nine squares.
 '''
 # Import the standard plugins or utils obtain OS utils
-import os, shutil
-import colorama
-from colorama import Back, Fore, Style
+import colorama, os, shutil
+from colorama import Fore
 colorama.init(autoreset=True)
 
 
 def main():
     '''
-    Pending
+    Starts and plays the game
     '''
     clear_console_display_title()
-    board_size = select_board_grid_size()
+    board_size = 3 #select_board_grid_size()
     player = active_player("")
     board = create_board_grid(board_size)
     
@@ -61,6 +60,7 @@ def clear_console_display_title():
 def select_board_grid_size():
     '''
     Enhanced board size (4x4, 5x5, 6x6 grid, or user selected!)
+    Returns: An integer
     '''
     board_grid_size = int(input("Enter board grid size (3 - 3x3, 4 - 4x4, 5 - 5x5, 6 - 6x6, etc): "))
 
@@ -83,8 +83,9 @@ def create_board_grid(board_size):
         board_size - An integer
     Return: a list
     '''
-    locations = board_size ** 2
     board_grid = []
+    locations = board_size ** 2
+
     for location in range(locations):
         board_grid.append(location + 1)
     
@@ -105,16 +106,10 @@ def display_board_grid(board_grid, board_size):
         board_size - An integer
     '''
     for i in range(0, len(board_grid), board_size):
-        if board_size == 3:
-            print(f"{board_grid[i]}{Fore.WHITE}|{board_grid[i + 1]}{Fore.WHITE}|{board_grid[i + 2]}")
+        print(f"{board_grid[i]}{Fore.WHITE}|{board_grid[i + 1]}{Fore.WHITE}|{board_grid[i + 2]}")
 
-            if i != 6:
-                print("-+-+-")
-        elif board_size == 4:
-            print(f"{board_grid[i]}{Fore.WHITE}|{board_grid[i + 1]}{Fore.WHITE}|{board_grid[i + 2]}{Fore.WHITE}|{board_grid[i + 3]}")
-
-            if i != 12:
-                print("-+-+-+-")
+        if i != 6:
+            print("-+-+-")
     
     print()
 
@@ -159,7 +154,7 @@ def is_a_draw(board_size, board_grid):
     locations = board_size ** 2
 
     for location in range(locations):
-        if(board_grid[location] != "x" and board_grid[location] != "o"):
+        if board_grid[location] != f"{Fore.RED}x" and board_grid[location] != f"{Fore.CYAN}o":
             return False
     
     return True
@@ -181,30 +176,16 @@ def has_winner(board_size, board_grid):
     #
     # ['x', 'x', 'o', 'x', 'o', 'o', 7, 'x', 'o']
     # Tic Tac Toe - Winning Arrangements, checking rows, columns, and diagonals
-    has_winner = False
+    locations = board_size ** 2
 
-    # horizontal
-    for i in range(0, len(board_grid), board_size):
-        has_winner = (board_grid[i] == board_grid[i + 1] == board_grid[i + 2])
-
-        if has_winner:
-            return has_winner
-    
-    # vertical
-    for i in range(board_size):
-        has_winner = (board_grid[i] == board_grid[i + board_size] == board_grid[i + (board_size * 2)])
-
-        if has_winner:
-            return has_winner
-    
-    # diagonal
-    for i in range(board_size - 1):
-        has_winner = (board_grid[i * 2] == board_grid[i + board_size + 1] == board_grid[i + (board_size * 2)])
-
-        if has_winner:
-            return has_winner
-    
-    return has_winner
+    return (board_grid[0] == board_grid[1] == board_grid[2] or
+            board_grid[3] == board_grid[4] == board_grid[5] or
+            board_grid[6] == board_grid[7] == board_grid[8] or
+            board_grid[0] == board_grid[3] == board_grid[6] or
+            board_grid[1] == board_grid[4] == board_grid[7] or
+            board_grid[2] == board_grid[5] == board_grid[8] or
+            board_grid[0] == board_grid[4] == board_grid[8] or
+            board_grid[2] == board_grid[4] == board_grid[6])
 
 
 # If this file was executed like this: % python3 tictactoe.py
