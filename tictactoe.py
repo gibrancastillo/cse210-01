@@ -4,25 +4,73 @@ File: tictactoe.py
 Purpose: Tic-Tac-Toe is a game in which two players seek in alternate turns to complete a row, a column, 
          or a diagonal with either three x's or three o's drawn in the spaces of a grid of nine squares.
 '''
+# Import the standard plugins or utils obtain OS utils
+import os, shutil
+import colorama
+from colorama import Back, Fore, Style
+colorama.init(autoreset=True)
 
 
 def main():
     '''
     Pending
     '''
+    clear_console_display_title()
+    board_size = select_board_grid_size()
     player = active_player("")
-    board = create_board_grid()
+    board = create_board_grid(board_size)
     
-    while not (has_winner(board) or is_a_draw(board)):
-        display_board_grid(board)
+    # Evaluates whether there is a winner or a tie
+    while not (has_winner(board_size, board) or is_a_draw(board_size, board)):
+        print("++++++++++++++++++++++++++++++++++++")
+        display_board_grid(board, board_size)
         take_turn(player, board)
+        # swapping the turn or flipping player
         player = active_player(player)
     
-    display_board_grid(board)
-    print("Good game. Thanks for playing!")
+    # showing the final view of board
+    display_board_grid(board, board_size)
+
+    # checking whether current player is won or not
+    if(has_winner(board_size, board)):
+        print(f"Player {active_player(player)} wins the game!")
+    else:
+        print("Match Draw!")
+
+    print("Good game. Thanks for playing!\n")
 
 
-def create_board_grid():
+def clear_console_display_title():
+    """
+    Clear console or terminal screen according to the OS and
+    dispplay title center based on the size of their shell
+    """
+    # Obtain number of column of the shell
+    terminalSize = shutil.get_terminal_size().columns
+
+    if os.name in ('nt', 'dos'):
+        os.system('cls')
+    else:
+        os.system('clear')
+    
+    # Print title center based on the size of their shell
+    tittle = 'W02 Prove Milestone  - \U0001f600  \n'
+    print(tittle.center(terminalSize))
+
+
+def select_board_grid_size():
+    '''
+    Enhanced board size (4x4, 5x5, 6x6 grid, or user selected!)
+    '''
+    board_grid_size = int(input("Enter board grid size (3 - 3x3, 4 - 4x4, 5 - 5x5, 6 - 6x6, etc): "))
+
+    while board_grid_size < 3:
+        board_grid_size = int(input("Enter board grid size greater than two: "))
+
+    return board_grid_size
+
+
+def create_board_grid(board_size):
     '''
     Creates the board grid using a list with each location, see interface below.
     The game is played on a grid that is three squares by three squares.
@@ -31,16 +79,19 @@ def create_board_grid():
         4|5|6
         -+-+-
         7|8|9
+    Parameters:
+        board_size - An integer
     Return: a list
     '''
+    locations = board_size ** 2
     board_grid = []
-    for location in range(9):
+    for location in range(locations):
         board_grid.append(location + 1)
     
     return board_grid
 
 
-def display_board_grid(board_grid):
+def display_board_grid(board_grid, board_size):
     '''
     Displays the board grid using a reference for list with each location, see interface below.
     The game is played on a grid that is three squares by three squares.
@@ -51,15 +102,20 @@ def display_board_grid(board_grid):
         7|8|9
     Parameters:
         board_grid - A list
+        board_size - An integer
     '''
-    print(f"\n{board_grid[0]}|{board_grid[1]}|{board_grid[2]}")
-    print("-+-+-")
-    print(f"{board_grid[3]}|{board_grid[4]}|{board_grid[5]}")
-    print("-+-+-")
-    print(f"{board_grid[6]}|{board_grid[7]}|{board_grid[8]}\n")
+    for i in range(0, len(board_grid), board_size):
+        if board_size == 3:
+            print(f"{board_grid[i]}{Fore.WHITE}|{board_grid[i + 1]}{Fore.WHITE}|{board_grid[i + 2]}")
 
-    print()
-    print(board_grid)
+            if i != 6:
+                print("-+-+-")
+        elif board_size == 4:
+            print(f"{board_grid[i]}{Fore.WHITE}|{board_grid[i + 1]}{Fore.WHITE}|{board_grid[i + 2]}{Fore.WHITE}|{board_grid[i + 3]}")
+
+            if i != 12:
+                print("-+-+-+-")
+    
     print()
 
 
@@ -84,44 +140,71 @@ def take_turn(active_player, board_grid):
         board_grid - A reference for a list
     Returns: nothing
     '''
-    location =  int(input(f"{active_player}'s turn to choose a square (1-9): "))
-    board_grid[location - 1] = active_player
+    location =  int(input(f"Player {active_player}'s turn to choose a square (1-9): "))
+    
+    while(type(board_grid[location - 1]) == str):
+        location =  int(input(f"Player {active_player}'s turn to choose a square (1-9) that is not used: "))
+    
+    board_grid[location - 1] = f"{Fore.RED}{active_player}" if active_player == "x" else f"{Fore.CYAN}{active_player}"
 
 
-def is_a_draw(board_grid):
+def is_a_draw(board_size, board_grid):
     '''
     Determine if all nine squares are full and neither player has three in a row, the game ends in a draw.
     Parameters:
+        board_size - An integer
         board_grid - A reference for a list
     Returns: a boolean
     '''
-    for location in range(9):
+    locations = board_size ** 2
+
+    for location in range(locations):
         if(board_grid[location] != "x" and board_grid[location] != "o"):
             return False
+    
     return True
 
 
-def has_winner(board_grid):
+def has_winner(board_size, board_grid):
     '''
     Determine if a player, has three of their marks in a row (vertically, horizontally, or diagonally), is the winner.
     Parameters:
+        board_size - An integer
         board_grid - A reference for a list
     Returns: a boolean
     '''
-    # board_grid = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-    # 0|1|2
+    # x|x|o
     # -+-+-
-    # 3|4|5
+    # x|o|o
     # -+-+-
-    # 6|7|8
-    return (board_grid[0] == board_grid[1] == board_grid[2] or
-            board_grid[3] == board_grid[4] == board_grid[5] or
-            board_grid[6] == board_grid[7] == board_grid[8] or
-            board_grid[0] == board_grid[3] == board_grid[6] or
-            board_grid[1] == board_grid[4] == board_grid[7] or
-            board_grid[2] == board_grid[5] == board_grid[8] or
-            board_grid[0] == board_grid[4] == board_grid[8] or
-            board_grid[2] == board_grid[4] == board_grid[6])
+    # 7|x|o
+    #
+    # ['x', 'x', 'o', 'x', 'o', 'o', 7, 'x', 'o']
+    # Tic Tac Toe - Winning Arrangements, checking rows, columns, and diagonals
+    has_winner = False
+
+    # horizontal
+    for i in range(0, len(board_grid), board_size):
+        has_winner = (board_grid[i] == board_grid[i + 1] == board_grid[i + 2])
+
+        if has_winner:
+            return has_winner
+    
+    # vertical
+    for i in range(board_size):
+        has_winner = (board_grid[i] == board_grid[i + board_size] == board_grid[i + (board_size * 2)])
+
+        if has_winner:
+            return has_winner
+    
+    # diagonal
+    for i in range(board_size - 1):
+        has_winner = (board_grid[i * 2] == board_grid[i + board_size + 1] == board_grid[i + (board_size * 2)])
+
+        if has_winner:
+            return has_winner
+    
+    return has_winner
 
 
 # If this file was executed like this: % python3 tictactoe.py
